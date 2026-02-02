@@ -48,6 +48,7 @@
             transition: all 0.15s ease-out;
             z-index: 9999; 
             touch-action: none;
+            position: relative;
         }
 
         #yes-btn {
@@ -134,25 +135,30 @@
             yesBtn.style.transform = `scale(${yesSize})`;
             
             // 2. Teleport No button within viewport bounds
-            // Using visualViewport for better mobile accuracy, fallback to innerWidth/Height
-            const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-            const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
             
-            const btnRect = noBtn.getBoundingClientRect();
-            const padding = 25; 
-            
-            // Re-calculate max possible coordinates based on real-time size
-            const maxX = vw - btnRect.width - padding;
-            const maxY = vh - btnRect.height - padding;
-
-            // Ensure we don't get negative values if screen is tiny
-            const safeMaxX = Math.max(padding, maxX);
-            const safeMaxY = Math.max(padding, maxY);
-
-            const randomX = Math.floor(Math.random() * (safeMaxX - padding + 1)) + padding;
-            const randomY = Math.floor(Math.random() * (safeMaxY - padding + 1)) + padding;
-
+            // We force the button to fixed position for precise placement
             noBtn.style.position = 'fixed';
+            
+            // Get actual current button dimensions including padding/borders
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
+            
+            const padding = 20; // Margin from the edge of the screen
+            
+            // Calculate maximum available space
+            const maxX = vw - btnWidth - padding;
+            const maxY = vh - btnHeight - padding;
+
+            // Generate random coordinates
+            let randomX = Math.floor(Math.random() * (maxX - padding)) + padding;
+            let randomY = Math.floor(Math.random() * (maxY - padding)) + padding;
+
+            // Final clamp check to ensure it NEVER goes off screen
+            randomX = Math.max(padding, Math.min(randomX, maxX));
+            randomY = Math.max(padding, Math.min(randomY, maxY));
+
             noBtn.style.left = `${randomX}px`;
             noBtn.style.top = `${randomY}px`;
             noBtn.style.margin = '0'; 
@@ -174,7 +180,7 @@
         // Add event listeners for both desktop and mobile
         noBtn.addEventListener('mouseenter', moveNoButton);
         noBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevents clicking the button on touch
+            e.preventDefault(); 
             moveNoButton();
         });
 
@@ -199,7 +205,6 @@
             }
         }
 
-        // Ambient hearts
         setInterval(() => {
             const heart = document.createElement('div');
             heart.className = 'heart';
