@@ -43,9 +43,15 @@
             100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
 
+        /* Ensure NO button is always physically above the YES button */
         #no-btn {
             transition: all 0.15s ease-out;
-            z-index: 50;
+            z-index: 9999; 
+            touch-action: none;
+        }
+
+        #yes-btn {
+            z-index: 10;
         }
 
         .celebration-bg {
@@ -56,9 +62,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1rem;
+            gap: 1.5rem;
             width: 100%;
-            height: 100px;
+            height: 120px;
             position: relative;
         }
     </style>
@@ -78,7 +84,7 @@
         
         <div class="btn-container" id="button-group">
             <button id="yes-btn" onclick="celebrate()" 
-                    class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition-all active:scale-95 text-xl z-30">
+                    class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition-all active:scale-95 text-xl">
                 Yes!
             </button>
             <button id="no-btn" 
@@ -89,7 +95,7 @@
     </div>
 
     <!-- Success Screen -->
-    <div id="celebration" class="hidden fixed inset-0 celebration-bg flex flex-col items-center justify-center text-center p-6 z-50">
+    <div id="celebration" class="hidden fixed inset-0 celebration-bg flex flex-col items-center justify-center text-center p-6 z-[10000]">
         <img src="https://i.pinimg.com/236x/28/e8/5d/28e85d405e571d316f5c6019c2ac51c3.jpg" 
              alt="Happy Valentine" class="rounded-3xl h-64 w-64 object-cover shadow-2xl mb-8 border-4 border-white">
         <h1 class="text-4xl font-bold text-white mb-4">Yay! Best Day Ever! 🥰</h1>
@@ -123,28 +129,39 @@
         ];
 
         function moveNoButton() {
+            // 1. Grow the Yes button
             yesSize += 0.35;
             yesBtn.style.transform = `scale(${yesSize})`;
             
-            const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-            const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-            const btnRect = noBtn.getBoundingClientRect();
-            const padding = 20; 
+            // 2. Teleport No button within viewport bounds
+            // Using visualViewport for better mobile accuracy, fallback to innerWidth/Height
+            const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+            const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             
+            const btnRect = noBtn.getBoundingClientRect();
+            const padding = 25; 
+            
+            // Re-calculate max possible coordinates based on real-time size
             const maxX = vw - btnRect.width - padding;
             const maxY = vh - btnRect.height - padding;
 
-            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+            // Ensure we don't get negative values if screen is tiny
+            const safeMaxX = Math.max(padding, maxX);
+            const safeMaxY = Math.max(padding, maxY);
+
+            const randomX = Math.floor(Math.random() * (safeMaxX - padding + 1)) + padding;
+            const randomY = Math.floor(Math.random() * (safeMaxY - padding + 1)) + padding;
 
             noBtn.style.position = 'fixed';
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
             noBtn.style.margin = '0'; 
 
+            // 3. Update Text randomly
             const randomMsgIndex = Math.floor(Math.random() * messages.length);
             questionText.innerText = messages[randomMsgIndex];
 
+            // 4. Update Image randomly with no repeats
             let randomImgIndex;
             do {
                 randomImgIndex = Math.floor(Math.random() * sadImages.length);
@@ -154,14 +171,15 @@
             statusGif.src = sadImages[randomImgIndex];
         }
 
-        noBtn.addEventListener('mouseover', moveNoButton);
+        // Add event listeners for both desktop and mobile
+        noBtn.addEventListener('mouseenter', moveNoButton);
         noBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); 
+            e.preventDefault(); // Prevents clicking the button on touch
             moveNoButton();
         });
 
         function celebrate() {
-            document.getElementById('main-card').classList.add('hidden');
+            mainCard.classList.add('hidden');
             document.getElementById('celebration').classList.remove('hidden');
             createHearts();
         }
@@ -181,6 +199,7 @@
             }
         }
 
+        // Ambient hearts
         setInterval(() => {
             const heart = document.createElement('div');
             heart.className = 'heart';
