@@ -45,7 +45,7 @@
 
         /* Ensure NO button is always physically above the YES button */
         #no-btn {
-            transition: all 0.15s ease-out;
+            transition: all 0.2s ease-out;
             z-index: 9999; 
             touch-action: none;
             position: relative;
@@ -134,31 +134,29 @@
             yesSize += 0.35;
             yesBtn.style.transform = `scale(${yesSize})`;
             
-            // 2. Teleport No button within viewport bounds
-            const vw = window.innerWidth;
+            // 2. Teleport No button within a constrained range around the card
+            // We'll keep it within a "danger zone" relative to the main card
+            const cardRect = mainCard.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+            
+            // Define the movement bounds relative to the card's center
+            // This keeps the button from flying to the very edges of the browser
+            const maxDistance = 150; // Max pixels away from the card
+            
             const vh = window.innerHeight;
+            const vw = window.innerWidth;
+
+            // Target area: anywhere near the card but within screen safety
+            const minX = Math.max(10, cardRect.left - maxDistance);
+            const maxX = Math.min(vw - btnRect.width - 10, cardRect.right + maxDistance);
             
-            // We force the button to fixed position for precise placement
+            const minY = Math.max(10, cardRect.top - maxDistance);
+            const maxY = Math.min(vh - btnRect.height - 10, cardRect.bottom + maxDistance);
+
+            const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            const randomY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
             noBtn.style.position = 'fixed';
-            
-            // Get actual current button dimensions including padding/borders
-            const btnWidth = noBtn.offsetWidth;
-            const btnHeight = noBtn.offsetHeight;
-            
-            const padding = 20; // Margin from the edge of the screen
-            
-            // Calculate maximum available space
-            const maxX = vw - btnWidth - padding;
-            const maxY = vh - btnHeight - padding;
-
-            // Generate random coordinates
-            let randomX = Math.floor(Math.random() * (maxX - padding)) + padding;
-            let randomY = Math.floor(Math.random() * (maxY - padding)) + padding;
-
-            // Final clamp check to ensure it NEVER goes off screen
-            randomX = Math.max(padding, Math.min(randomX, maxX));
-            randomY = Math.max(padding, Math.min(randomY, maxY));
-
             noBtn.style.left = `${randomX}px`;
             noBtn.style.top = `${randomY}px`;
             noBtn.style.margin = '0'; 
