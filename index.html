@@ -48,7 +48,7 @@
             transition: all 0.2s ease-out;
             z-index: 9999; 
             touch-action: none;
-            position: relative;
+            position: relative; /* Starts relative, moves to fixed on first touch */
         }
 
         #yes-btn {
@@ -134,38 +134,38 @@
             yesSize += 0.35;
             yesBtn.style.transform = `scale(${yesSize})`;
             
-            // 2. Teleport No button within a constrained range around the card
-            // We'll keep it within a "danger zone" relative to the main card
+            // 2. Position the button
             const cardRect = mainCard.getBoundingClientRect();
             const btnRect = noBtn.getBoundingClientRect();
             
-            // Define the movement bounds relative to the card's center
-            // This keeps the button from flying to the very edges of the browser
-            const maxDistance = 150; // Max pixels away from the card
+            // Constraint: Keep it very close to the card area (50px padding)
+            const margin = 50; 
+            const screenPadding = 30; // Hard clamp from browser edge
             
             const vh = window.innerHeight;
             const vw = window.innerWidth;
 
-            // Target area: anywhere near the card but within screen safety
-            const minX = Math.max(10, cardRect.left - maxDistance);
-            const maxX = Math.min(vw - btnRect.width - 10, cardRect.right + maxDistance);
+            // Target movement area (tightened around the card)
+            const minX = Math.max(screenPadding, cardRect.left - margin);
+            const maxX = Math.min(vw - btnRect.width - screenPadding, cardRect.right + margin);
             
-            const minY = Math.max(10, cardRect.top - maxDistance);
-            const maxY = Math.min(vh - btnRect.height - 10, cardRect.bottom + maxDistance);
+            const minY = Math.max(screenPadding, cardRect.top - margin);
+            const maxY = Math.min(vh - btnRect.height - screenPadding, cardRect.bottom + margin);
 
+            // Generate coordinates
             const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
             const randomY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
 
+            // Apply fixed positioning immediately to avoid jumping from relative layout
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${randomX}px`;
             noBtn.style.top = `${randomY}px`;
             noBtn.style.margin = '0'; 
 
-            // 3. Update Text randomly
+            // 3. Update Text and Image
             const randomMsgIndex = Math.floor(Math.random() * messages.length);
             questionText.innerText = messages[randomMsgIndex];
 
-            // 4. Update Image randomly with no repeats
             let randomImgIndex;
             do {
                 randomImgIndex = Math.floor(Math.random() * sadImages.length);
@@ -175,7 +175,6 @@
             statusGif.src = sadImages[randomImgIndex];
         }
 
-        // Add event listeners for both desktop and mobile
         noBtn.addEventListener('mouseenter', moveNoButton);
         noBtn.addEventListener('touchstart', (e) => {
             e.preventDefault(); 
