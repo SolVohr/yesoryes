@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Be My Valentine? ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pangolin&display=swap');
+        
+        body {
+            font-family: 'Pangolin', cursive;
+            background-color: #fff0f3;
+            overflow: hidden;
+            touch-action: manipulation;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .heart {
+            position: absolute;
+            color: #ffb3c1;
+            animation: float 6s infinite linear;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        #no-btn {
+            transition: all 0.15s ease-out;
+            z-index: 50;
+        }
+
+        .celebration-bg {
+            background: linear-gradient(45deg, #ff4d6d, #ff85a1);
+        }
+
+        .btn-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+            height: 100px;
+            position: relative;
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <div class="floating-hearts" id="heart-container"></div>
+
+    <!-- Main Card -->
+    <div id="main-card" class="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-2xl text-center max-w-sm w-[90%] border-4 border-pink-200 z-20">
+        <div id="image-container" class="mb-6 flex justify-center">
+            <img id="status-gif" src="https://media.tenor.com/l7tvGwdYLJEAAAAe/excited-milk-and-mocha.png" 
+                 alt="Excited Milk and Mocha" class="rounded-2xl h-44 w-44 object-contain">
+        </div>
+        
+        <h1 id="question-text" class="text-2xl font-bold text-pink-600 mb-8 min-h-[3rem]">Will you be my Valentine? 💖</h1>
+        
+        <div class="btn-container" id="button-group">
+            <button id="yes-btn" onclick="celebrate()" 
+                    class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition-all active:scale-95 text-xl z-30">
+                Yes!
+            </button>
+            <button id="no-btn" 
+                    class="bg-gray-400 text-white font-bold py-3 px-8 rounded-full shadow-lg text-xl">
+                No
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Screen -->
+    <div id="celebration" class="hidden fixed inset-0 celebration-bg flex flex-col items-center justify-center text-center p-6 z-50">
+        <img src="https://i.pinimg.com/236x/28/e8/5d/28e85d405e571d316f5c6019c2ac51c3.jpg" 
+             alt="Happy Valentine" class="rounded-3xl h-64 w-64 object-cover shadow-2xl mb-8 border-4 border-white">
+        <h1 class="text-4xl font-bold text-white mb-4">Yay! Best Day Ever! 🥰</h1>
+        <p class="text-white text-xl opacity-90">I love you so much! ❤️</p>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const mainCard = document.getElementById('main-card');
+        const statusGif = document.getElementById('status-gif');
+        const heartContainer = document.getElementById('heart-container');
+        const questionText = document.getElementById('question-text');
+
+        let yesSize = 1;
+        let lastImgIndex = -1;
+
+        const messages = [
+            "Are you sure? 🥺",
+            "Think again! 🧐",
+            "Pleeaaaseeee? 🙏",
+            "I'll give you chocolate! 🍫",
+            "You're breaking my heart 💔",
+            "Don't do this to me... 😭"
+        ];
+
+        const sadImages = [
+            "https://media.tenor.com/v3CzOkR-B50AAAAe/milk-and-mocha-bear.png",
+            "https://media.tenor.com/1jKnE-r5T-EAAAAe/milk-and-mocha-bears-sad.png",
+            "https://media.tenor.com/xSdP8nYROncAAAAe/milk-and-mocha-crying.png"
+        ];
+
+        function moveNoButton() {
+            yesSize += 0.35;
+            yesBtn.style.transform = `scale(${yesSize})`;
+            
+            const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+            const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+            const btnRect = noBtn.getBoundingClientRect();
+            const padding = 20; 
+            
+            const maxX = vw - btnRect.width - padding;
+            const maxY = vh - btnRect.height - padding;
+
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            noBtn.style.margin = '0'; 
+
+            const randomMsgIndex = Math.floor(Math.random() * messages.length);
+            questionText.innerText = messages[randomMsgIndex];
+
+            let randomImgIndex;
+            do {
+                randomImgIndex = Math.floor(Math.random() * sadImages.length);
+            } while (randomImgIndex === lastImgIndex);
+            
+            lastImgIndex = randomImgIndex;
+            statusGif.src = sadImages[randomImgIndex];
+        }
+
+        noBtn.addEventListener('mouseover', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            moveNoButton();
+        });
+
+        function celebrate() {
+            document.getElementById('main-card').classList.add('hidden');
+            document.getElementById('celebration').classList.remove('hidden');
+            createHearts();
+        }
+
+        function createHearts() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    heart.innerHTML = '❤️';
+                    heart.style.left = Math.random() * 100 + 'vw';
+                    heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                    heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                    heartContainer.appendChild(heart);
+                    setTimeout(() => heart.remove(), 6000);
+                }, i * 100);
+            }
+        }
+
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = '🌸';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.opacity = '0.3';
+            heartContainer.appendChild(heart);
+            setTimeout(() => heart.remove(), 6000);
+        }, 1500);
+    </script>
+</body>
+</html>
